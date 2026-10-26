@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10110f">
+  <meta name="description" content="Avion AI. Your ideas, amplified.">
+  <title>Avion AI — Your ideas, amplified</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #10110f;
+      --panel: #151613;
+      --panel-raised: #1b1c18;
+      --line: #2b2c25;
+      --line-soft: #22231e;
+      --text: #f0eee7;
+      --muted: #85857b;
+      --gold: #d6b66b;
+      --gold-bright: #f0d58d;
+      --green: #9bba8b;
+      --sans: 'DM Sans', sans-serif;
+      --display: 'Manrope', sans-serif;
+      --mono: 'DM Mono', monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { width: 100%; min-width: 320px; height: 100%; margin: 0; }
+    body {
+      overflow: hidden;
+      background-color: var(--bg);
+      background-image: radial-gradient(ellipse at 51% 24%, rgba(177, 146, 72, .075), transparent 39%), linear-gradient(rgba(255,255,255,.014) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.014) 1px, transparent 1px);
+      background-size: auto, 36px 36px, 36px 36px;
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14px;
+    }
+
+    button, textarea { font: inherit; }
+    button { color: inherit; }
+    button:focus-visible, textarea:focus-visible, input:focus-visible + .upload-label { outline: 2px solid var(--gold); outline-offset: 3px; }
+    .app { display: grid; grid-template-columns: 238px minmax(0, 1fr) 278px; width: 100%; height: 100dvh; }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      padding: 23px 15px 15px;
+      border-right: 1px solid var(--line-soft);
+      background: rgba(16,17,15,.82);
+      animation: appear .45s ease-out both;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; padding: 1px 8px 26px; }
+    .brand-mark { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid rgba(214,182,107,.42); border-radius: 9px; background: linear-gradient(145deg, #393321, #1c1b16 74%); color: var(--gold-bright); }
+    .brand-mark svg { width: 17px; height: 17px; }
+    .brand-name { font: 800 18px var(--display); letter-spacing: 0; }
+    .brand-name span { color: var(--gold); }
+    .new-chat {
+      display: flex; align-items: center; gap: 9px; width: 100%; height: 40px; padding: 0 11px;
+      border: 1px solid rgba(214,182,107,.32); border-radius: 6px; background: rgba(214,182,107,.08);
+      color: #e9d49e; cursor: pointer; transition: background .18s, border-color .18s;
+    }
+    .new-chat:hover { background: rgba(214,182,107,.14); border-color: rgba(214,182,107,.6); }
+    .new-chat svg { width: 16px; height: 16px; }
+    .nav-label { margin: 28px 8px 9px; color: #74756d; font: 10px var(--mono); letter-spacing: 1.25px; text-transform: uppercase; }
+    .history { display: grid; gap: 3px; }
+    .history button { width: 100%; padding: 9px 10px; overflow: hidden; border: 0; border-radius: 5px; background: transparent; color: #a5a59b; text-align: left; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+    .history button:hover, .history button.active { background: #20211c; color: #e5e1d7; }
+    .sidebar-bottom { margin-top: auto; }
+    .local-note { display: flex; align-items: flex-start; gap: 9px; padding: 12px 10px; border-top: 1px solid var(--line-soft); color: #8f9085; font-size: 11px; line-height: 1.55; }
+    .local-note svg { flex: 0 0 auto; width: 14px; height: 14px; margin-top: 1px; color: var(--green); }
+    .profile { display: flex; align-items: center; gap: 10px; padding: 12px 8px 0; border-top: 1px solid var(--line-soft); }
+    .avatar { display: grid; place-items: center; width: 31px; height: 31px; border: 1px solid #55503c; border-radius: 50%; background: #2b281e; color: #dfcc99; font: 11px var(--mono); }
+    .profile-copy { min-width: 0; }
+    .profile-copy strong, .profile-copy span { display: block; }
+    .profile-copy strong { font-size: 12px; font-weight: 600; }
+    .profile-copy span { margin-top: 2px; color: var(--muted); font-size: 10px; }
+
+    .center { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; height: 62px; flex: 0 0 auto; padding: 0 28px; border-bottom: 1px solid var(--line-soft); background: rgba(16,17,15,.48); }
+    .model-select { display: flex; align-items: center; gap: 8px; padding: 7px 9px; border: 1px solid transparent; border-radius: 5px; background: transparent; color: #c9c7bd; font-size: 12px; cursor: pointer; }
+    .model-select:hover { border-color: var(--line); background: var(--panel); }
+    .model-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 9px rgba(214,182,107,.5); }
+    .model-select svg { width: 13px; height: 13px; color: var(--muted); }
+    .topbar-right { display: flex; align-items: center; gap: 14px; color: #77786f; font: 10px var(--mono); }
+    .secure-label { display: flex; align-items: center; gap: 6px; }
+    .secure-label svg { width: 13px; height: 13px; color: var(--green); }
+
+    .conversation { display: flex; flex: 1; flex-direction: column; min-height: 0; }
+    .messages { display: flex; flex: 1; flex-direction: column; gap: 18px; width: min(760px, 100%); min-height: 0; margin: 0 auto; padding: 30px 28px 20px; overflow-y: auto; scrollbar-color: #383930 transparent; scrollbar-width: thin; }
+    .welcome { display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; min-height: 340px; padding: 18px 0 10px; text-align: center; animation: rise .55s .04s ease-out both; }
+    .welcome-mark { display: grid; place-items: center; width: 52px; height: 52px; margin-bottom: 21px; border: 1px solid rgba(214,182,107,.34); border-radius: 15px; background: linear-gradient(145deg, rgba(214,182,107,.13), rgba(31,30,23,.46)); color: var(--gold-bright); box-shadow: 0 0 55px rgba(214,182,107,.06); }
+    .welcome-mark svg { width: 24px; height: 24px; }
+    .eyebrow { color: var(--gold); font: 10px var(--mono); letter-spacing: 1.75px; text-transform: uppercase; }
+    .welcome h1 { max-width: 610px; margin: 14px 0 11px; font: 500 clamp(27px, 3.5vw, 39px)/1.17 var(--display); letter-spacing: 0; }
+    .welcome h1 em { color: var(--gold-bright); font-style: normal; }
+    .welcome > p { max-width: 440px; margin: 0; color: #898a80; font-size: 13px; line-height: 1.75; }
+    .suggestions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; width: min(560px, 100%); margin-top: 34px; text-align: left; }
+    .suggestion { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 54px; padding: 11px 13px; border: 1px solid #303129; border-radius: 6px; background: rgba(23,24,20,.88); color: #cac8bf; text-align: left; font-size: 11px; line-height: 1.5; cursor: pointer; transition: border-color .18s, background .18s, transform .18s; }
+    .suggestion:hover { transform: translateY(-1px); border-color: #766440; background: #1e1e18; }
+    .suggestion svg { flex: 0 0 auto; width: 14px; height: 14px; color: var(--gold); }
+    .welcome[hidden] { display: none; }
+    .message { display: flex; align-items: flex-start; gap: 11px; animation: rise .22s ease-out both; }
+    .message.user { justify-content: flex-end; }
+    .message-mark { display: grid; flex: 0 0 auto; place-items: center; width: 27px; height: 27px; border: 1px solid #4c4632; border-radius: 8px; background: #252319; color: var(--gold); }
+    .message-mark svg { width: 15px; height: 15px; }
+    .message-content { max-width: min(540px, 82%); padding: 11px 13px; border: 1px solid #292a24; border-radius: 3px 9px 9px 9px; background: rgba(26,27,23,.94); color: #d3d1c9; font-size: 13px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .message.user .message-content { border-color: rgba(214,182,107,.2); border-radius: 9px 3px 9px 9px; background: rgba(91,75,41,.22); color: #e9e3d3; }
+    .composer-wrap { flex: 0 0 auto; width: min(760px, 100%); margin: 0 auto; padding: 0 28px 13px; }
+    .composer { padding: 10px 11px 8px; border: 1px solid #3a3a31; border-radius: 8px; background: rgba(23,24,21,.97); box-shadow: 0 12px 40px rgba(0,0,0,.17); transition: border-color .18s, box-shadow .18s; }
+    .composer:focus-within { border-color: rgba(214,182,107,.54); box-shadow: 0 0 0 3px rgba(214,182,107,.05), 0 12px 40px rgba(0,0,0,.17); }
+    .composer textarea { display: block; width: 100%; min-height: 48px; max-height: 160px; padding: 5px 5px 8px; resize: none; border: 0; outline: none; background: transparent; color: var(--text); font-size: 13px; line-height: 1.6; }
+    .composer textarea::placeholder { color: #72736a; }
+    .composer textarea:focus-visible { outline: 0; }
+    .composer-actions { display: flex; align-items: center; justify-content: space-between; }
+    .action-group { display: flex; align-items: center; gap: 5px; }
+    .icon-button { display: grid; place-items: center; width: 31px; height: 31px; border: 0; border-radius: 5px; background: transparent; color: #92938a; cursor: pointer; transition: color .15s, background .15s; }
+    .icon-button:hover { background: #292a24; color: #e4e0d4; }
+    .icon-button svg { width: 17px; height: 17px; }
+    .send-button { display: grid; place-items: center; width: 32px; height: 32px; border: 1px solid rgba(214,182,107,.52); border-radius: 5px; background: var(--gold); color: #1c1a14; cursor: pointer; transition: background .15s, transform .15s; }
+    .send-button:hover { transform: translateY(-1px); background: var(--gold-bright); }
+    .send-button:disabled { opacity: .45; cursor: default; transform: none; }
+    .send-button svg { width: 16px; height: 16px; }
+    .composer-caption { padding-top: 9px; color: #686960; text-align: center; font-size: 10px; }
+    .file-input { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; clip-path: inset(50%); }
+    .upload-label { display: grid; place-items: center; width: 31px; height: 31px; border-radius: 5px; color: #92938a; cursor: pointer; }
+    .upload-label:hover { background: #292a24; color: #e4e0d4; }
+    .upload-label svg { width: 17px; height: 17px; }
+
+    .inspector { min-height: 0; padding: 24px 17px 18px; overflow-y: auto; border-left: 1px solid var(--line-soft); background: rgba(16,17,15,.63); animation: appear .5s .08s ease-out both; }
+    .inspector-heading { display: flex; align-items: center; justify-content: space-between; padding: 1px 2px 17px; border-bottom: 1px solid var(--line-soft); }
+    .inspector-heading h2 { margin: 0; font: 600 12px var(--display); }
+    .inspector-heading span { color: #72736a; font: 9px var(--mono); letter-spacing: .8px; text-transform: uppercase; }
+    .panel-section { padding: 19px 1px; border-bottom: 1px solid var(--line-soft); }
+    .section-title { margin: 0 0 11px; color: #a2a298; font: 10px var(--mono); letter-spacing: 1px; text-transform: uppercase; }
+    .drop-zone { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 132px; padding: 17px 13px; border: 1px dashed #414137; border-radius: 6px; background: rgba(28,29,24,.54); text-align: center; transition: background .18s, border-color .18s; }
+    .drop-zone.dragover { border-color: var(--gold); background: rgba(214,182,107,.08); }
+    .drop-icon { display: grid; place-items: center; width: 32px; height: 32px; margin-bottom: 10px; border: 1px solid #39382e; border-radius: 8px; color: var(--gold); }
+    .drop-icon svg { width: 16px; height: 16px; }
+    .drop-zone strong { font-size: 11px; font-weight: 500; }
+    .drop-zone p { margin: 5px 0 10px; color: #77786e; font-size: 10px; line-height: 1.55; }
+    .browse-button { padding: 6px 10px; border: 1px solid #454238; border-radius: 4px; background: #24241e; color: #c9c6b9; font-size: 10px; cursor: pointer; }
+    .browse-button:hover { border-color: #766440; color: var(--gold-bright); }
+    .file-list { display: grid; gap: 8px; margin-top: 11px; }
+    .file-item { display: flex; align-items: center; gap: 8px; padding: 8px; border: 1px solid var(--line-soft); border-radius: 5px; background: rgba(25,26,22,.7); }
+    .file-type { display: grid; flex: 0 0 auto; place-items: center; width: 27px; height: 29px; border: 1px solid #48412f; border-radius: 4px; background: #28251c; color: var(--gold); font: 8px var(--mono); text-transform: uppercase; }
+    .file-meta { min-width: 0; flex: 1; }
+    .file-meta strong, .file-meta span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .file-meta strong { color: #cfcdc4; font-size: 10px; font-weight: 500; }
+    .file-meta span { margin-top: 3px; color: #77786e; font-size: 9px; }
+    .remove-file { display: grid; flex: 0 0 auto; place-items: center; width: 23px; height: 23px; border: 0; border-radius: 4px; background: transparent; color: #86877e; cursor: pointer; }
+    .remove-file:hover { background: #332522; color: #e59b83; }
+    .remove-file svg { width: 13px; height: 13px; }
+    .capability { display: flex; align-items: flex-start; gap: 9px; margin: 13px 0; color: #999a90; font-size: 10px; line-height: 1.55; }
+    .capability svg { flex: 0 0 auto; width: 14px; height: 14px; margin-top: 1px; color: var(--gold); }
+    .about { margin-top: 18px; padding: 12px; border: 1px solid #302e25; border-radius: 5px; background: rgba(34,32,25,.45); }
+    .about .eyebrow { font-size: 9px; letter-spacing: 1px; }
+    .about p { margin: 7px 0 0; color: #929187; font-size: 10px; line-height: 1.7; }
+
+    .toast { position: fixed; z-index: 5; right: 20px; bottom: 20px; max-width: min(370px, calc(100vw - 40px)); padding: 11px 14px; border: 1px solid #494437; border-radius: 6px; background: #22221d; color: #e0ddd2; box-shadow: 0 8px 28px rgba(0,0,0,.34); font-size: 12px; line-height: 1.5; animation: rise .2s ease-out both; }
+    .toast[hidden] { display: none; }
+    @keyframes appear { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes rise { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 1060px) {
+      .app { grid-template-columns: 215px minmax(0, 1fr); }
+      .inspector { display: none; }
+    }
+    @media (max-width: 640px) {
+      body { background-size: auto, 28px 28px, 28px 28px; }
+      .app { grid-template-columns: minmax(0, 1fr); }
+      .sidebar { display: none; }
+      .topbar { height: 54px; padding: 0 15px; }
+      .topbar-right { gap: 0; }
+      .topbar-right .secure-label { font-size: 9px; }
+      .topbar-right .secure-label svg { width: 12px; }
+      .messages { padding: 18px 15px 14px; }
+      .welcome { min-height: 300px; }
+      .welcome h1 { font-size: 30px; }
+      .welcome > p { max-width: 330px; font-size: 12px; }
+      .suggestions { grid-template-columns: 1fr; gap: 7px; margin-top: 25px; }
+      .suggestion { min-height: 46px; }
+      .composer-wrap { padding: 0 12px 9px; }
+      .composer-caption { font-size: 9px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app" aria-label="Avion AI workspace">
+    <aside class="sidebar" aria-label="Conversation navigation">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 17.5 12 4l8 13.5h-4.2L12 10.2l-3.8 7.3H4Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8.5 14.5h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+        <div class="brand-name">avion<span>.</span></div>
+      </div>
+      <button class="new-chat" id="newChat" type="button"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>New conversation</button>
+      <div class="nav-label">Recent</div>
+      <nav class="history" id="history" aria-label="Recent conversations"><button class="active" type="button">A fresh perspective</button></nav>
+      <div class="sidebar-bottom">
+        <div class="local-note"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 5 6v5c0 4.7 2.9 8.3 7 10 4.1-1.7 7-5.3 7-10V6l-7-3Z" stroke="currentColor" stroke-width="1.5"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Your files stay in this browser session. Nothing is uploaded to a server.</span></div>
+        <div class="profile"><div class="avatar" aria-hidden="true">R</div><div class="profile-copy"><strong>Rishabh</strong><span>Personal workspace</span></div></div>
+      </div>
+    </aside>
+
+    <section class="center" aria-label="Assistant conversation">
+      <header class="topbar">
+        <button class="model-select" type="button" id="modelInfo" aria-label="Model status"><span class="model-dot" aria-hidden="true"></span>Avion assistant<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 10 5 5 5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <div class="topbar-right"><span class="secure-label"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 5 6v5c0 4.7 2.9 8.3 7 10 4.1-1.7 7-5.3 7-10V6l-7-3Z" stroke="currentColor" stroke-width="1.5"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Private session</span></div>
+      </header>
+
+      <div class="conversation">
+        <div class="messages" id="messages" aria-live="polite" aria-relevant="additions text">
+          <div class="welcome" id="welcome">
+            <div class="welcome-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 17.5 12 4l8 13.5h-4.2L12 10.2l-3.8 7.3H4Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8.5 14.5h7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+            <div class="eyebrow">Your ideas, amplified</div>
+            <h1>What are we <em>thinking through?</em></h1>
+            <p>A clear head for the complicated stuff. Bring a question, a rough draft, or a file. We’ll start there.</p>
+            <div class="suggestions" aria-label="Prompt starters">
+              <button class="suggestion" type="button" data-prompt="Help me turn a rough idea into a clear plan.">Turn a rough idea into a clear plan<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <button class="suggestion" type="button" data-prompt="Explain a complicated topic in plain language.">Explain something complicated, simply<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <button class="suggestion" type="button" data-prompt="Review my writing and suggest improvements.">Give my writing a sharper edit<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <button class="suggestion" type="button" data-prompt="Help me find the important points in this file.">Find the important points in a file<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="composer-wrap">
+          <form class="composer" id="composerForm">
+            <textarea id="prompt" rows="2" aria-label="Message Avion" placeholder="Ask anything. Keep it direct."></textarea>
+            <div class="composer-actions">
+              <div class="action-group">
+                <label class="upload-label" for="filePicker" title="Attach a file" aria-label="Attach a file"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m12 16 0-12m0 0L7.5 8.5M12 4l4.5 4.5M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></label>
+                <input class="file-input" id="filePicker" type="file" multiple accept=".txt,.md,.csv,.json,.pdf,.doc,.docx,.png,.jpg,.jpeg,.webp">
+              </div>
+              <button class="send-button" type="submit" aria-label="Send message" title="Send message"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 19V5m0 0L6 11m6-6 6 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            </div>
+          </form>
+          <div class="composer-caption">Avion can make mistakes. Check important details.</div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="inspector" aria-label="Workspace files and capabilities">
+      <div class="inspector-heading"><h2>Workspace</h2><span>Private</span></div>
+      <section class="panel-section">
+        <h3 class="section-title">Your files</h3>
+        <div class="drop-zone" id="dropZone">
+          <div class="drop-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m12 16 0-12m0 0L7.5 8.5M12 4l4.5 4.5M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <strong>Drop a file to get started</strong>
+          <p>PDF, text, images, and more<br>Up to 20 MB per file</p>
+          <button class="browse-button" id="browseFiles" type="button">Browse files</button>
+        </div>
+        <div class="file-list" id="fileList" aria-live="polite"></div>
+      </section>
+      <section class="panel-section">
+        <h3 class="section-title">Made for the messy middle</h3>
+        <div class="capability"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Zm7 12 .9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg><span>Reasoning that gets to the point</span></div>
+        <div class="capability"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 3h7l5 5v13H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.5"/><path d="M14 3v5h5M9 13h6M9 17h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>Documents you can actually work through</span></div>
+        <div class="capability"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1m-8.6 8.6-2.1 2.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.5"/></svg><span>No sign-up wall between you and a good question</span></div>
+      </section>
+      <div class="about"><div class="eyebrow">Avion AI</div><p>Built by Rishabh for curious minds and clear answers. Your ideas deserve room to go further.</p></div>
+    </aside>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script>
+    const promptField = document.querySelector('#prompt');
+    const form = document.querySelector('#composerForm');
+    const messages = document.querySelector('#messages');
+    const welcome = document.querySelector('#welcome');
+    const filePicker = document.querySelector('#filePicker');
+    const fileList = document.querySelector('#fileList');
+    const toast = document.querySelector('#toast');
+    const files = new Map();
+    let toastTimer;
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.hidden = false;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { toast.hidden = true; }, 3500);
+    }
+
+    function addMessage(text, role) {
+      const row = document.createElement('div');
+      row.className = `message ${role}`;
+      if (role === 'assistant') {
+        const mark = document.createElement('div');
+        mark.className = 'message-mark';
+        mark.setAttribute('aria-hidden', 'true');
+        mark.innerHTML = '<svg viewBox="0 0 24 24" fill="none"><path d="M4 17.5 12 4l8 13.5h-4.2L12 10.2l-3.8 7.3H4Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8.5 14.5h7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
+        row.append(mark);
+      }
+      const content = document.createElement('div');
+      content.className = 'message-content';
+      content.textContent = text;
+      row.append(content);
+      messages.append(row);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function renderFiles() {
+      fileList.replaceChildren();
+      for (const [id, file] of files) {
+        const item = document.createElement('div');
+        item.className = 'file-item';
+        const type = document.createElement('div');
+        type.className = 'file-type';
+        type.textContent = file.name.split('.').pop().slice(0, 5);
+        const meta = document.createElement('div');
+        meta.className = 'file-meta';
+        const name = document.createElement('strong');
+        name.textContent = file.name;
+        const size = document.createElement('span');
+        size.textContent = file.size < 1024 * 1024 ? `${Math.max(1, Math.round(file.size / 1024))} KB · in this session` : `${(file.size / 1024 / 1024).toFixed(1)} MB · in this session`;
+        const remove = document.createElement('button');
+        remove.className = 'remove-file';
+        remove.type = 'button';
+        remove.setAttribute('aria-label', `Remove ${file.name}`);
+        remove.innerHTML = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+        remove.addEventListener('click', () => { files.delete(id); renderFiles(); });
+        meta.append(name, size);
+        item.append(type, meta, remove);
+        fileList.append(item);
+      }
+    }
+
+    async function addFiles(incoming) {
+      const accepted = [];
+      for (const file of incoming) {
+        if (file.size > 20 * 1024 * 1024) {
+          showToast(`${file.name} is over the 20 MB per-file limit.`);
+          continue;
+        }
+        const id = `${file.name}-${file.lastModified}-${Math.random()}`;
+        files.set(id, file);
+        accepted.push(file.name);
+      }
+      renderFiles();
+      if (accepted.length) {
+        showToast(`${accepted.length} file${accepted.length === 1 ? '' : 's'} added to this browser session.`);
+      }
+    }
+
+    function makeAssistantReply(text) {
+      if (files.size) {
+        return 'Your message and files are ready in this session. This interface is running without an AI service connected, so it cannot read or reason over file contents yet. Connect a model and document-processing backend to enable live analysis.';
+      }
+      return 'Your message is ready. This interface is running without an AI service connected, so it cannot generate a live answer yet. Connect a model provider to enable Avion’s reasoning and responses.';
+    }
+
+    function sendMessage(text) {
+      const cleanText = text.trim();
+      if (!cleanText) return;
+      welcome.hidden = true;
+      addMessage(cleanText, 'user');
+      promptField.value = '';
+      promptField.style.height = 'auto';
+      window.setTimeout(() => addMessage(makeAssistantReply(cleanText), 'assistant'), 260);
+    }
+
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      sendMessage(promptField.value);
+    });
+
+    promptField.addEventListener('input', () => {
+      promptField.style.height = 'auto';
+      promptField.style.height = `${Math.min(promptField.scrollHeight, 160)}px`;
+    });
+
+    promptField.addEventListener('keydown', event => {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        form.requestSubmit();
+      }
+    });
+
+    document.querySelectorAll('[data-prompt]').forEach(button => {
+      button.addEventListener('click', () => {
+        promptField.value = button.dataset.prompt;
+        promptField.focus();
+        promptField.dispatchEvent(new Event('input'));
+      });
+    });
+
+    document.querySelector('#newChat').addEventListener('click', () => {
+      messages.querySelectorAll('.message').forEach(message => message.remove());
+      welcome.hidden = false;
+      promptField.value = '';
+      promptField.focus();
+    });
+
+    document.querySelector('#browseFiles').addEventListener('click', () => filePicker.click());
+    filePicker.addEventListener('change', async () => {
+      await addFiles(filePicker.files);
+      filePicker.value = '';
+    });
+
+    const dropZone = document.querySelector('#dropZone');
+    dropZone.addEventListener('dragover', event => { event.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', event => {
+      if (!dropZone.contains(event.relatedTarget)) dropZone.classList.remove('dragover');
+    });
+    dropZone.addEventListener('drop', async event => {
+      event.preventDefault();
+      dropZone.classList.remove('dragover');
+      await addFiles(event.dataTransfer.files);
+    });
+
+    document.querySelector('#modelInfo').addEventListener('click', () => showToast('No model provider is configured yet. Connect one to enable live AI responses.'));
+  </script>
+</body>
+</html>
