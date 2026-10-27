@@ -351,21 +351,93 @@
       }
     }
 
-    function makeAssistantReply(text) {
-      if (files.size) {
-        return 'Your message and files are ready in this session. This interface is running without an AI service connected, so it cannot read or reason over file contents yet. Connect a model and document-processing backend to enable live analysis.';
+    const LOCAL_MODEL_ID = 'Llama-3.2-1B-Instruct-q4f16_1-MLC';
+    const chatHistory = [{
+      role: 'system',
+      content: 'You are Avion, a thoughtful, useful AI assistant. Answer clearly and directly, ask a brief follow-up when needed, and be honest about uncertainty. You run locally in the browser and do not have live web access. Never claim to have browsed or verified current facts.'
+    }];
+    let enginePromise;
+    const sendButton = form.querySelector('.send-button');
+    const modelInfo = document.querySelector('#modelInfo');
+    const lineBreak = String.fromCharCode(10);
+
+    async function getEngine() {
+      if (!('gpu' in navigator)) {
+        throw new Error('This browser or device does not support WebGPU. Try the latest Chrome or Edge on a computer with WebGPU enabled.');
       }
-      return 'Your message is ready. This interface is running without an AI service connected, so it cannot generate a live answer yet. Connect a model provider to enable Avion’s reasoning and responses.';
+      if (!enginePromise) {
+        modelInfo.title = 'Downloading the local AI model. The first download is large; later visits can use the browser cache.';
+        if (modelInfo.childNodes[1]) modelInfo.childNodes[1].textContent = 'Loading local AI';
+        showToast('Setting up Avion’s local AI. The first model download is large and may take a few minutes.');
+        enginePromise = (async () => {
+          const webllm = await import('https://esm.run/@mlc-ai/web-llm@0.2.86');
+          return webllm.CreateMLCEngine(LOCAL_MODEL_ID, {
+            initProgressCallback: progress => {
+              const label = progress?.text || 'Preparing local AI model';
+              modelInfo.title = label;
+              if (modelInfo.childNodes[1]) modelInfo.childNodes[1].textContent = 'Loading local AI';
+            }
+          });
+        })();
+        enginePromise.catch(() => { enginePromise = null; });
+      }
+      const engine = await enginePromise;
+      if (modelInfo.childNodes[1]) modelInfo.childNodes[1].textContent = 'Avion AI · local';
+      modelInfo.title = 'Avion runs its language model in this browser. Prompts stay on this device.';
+      return engine;
     }
 
-    function sendMessage(text) {
+    async function readTextAttachments() {
+      const readable = [];
+      for (const file of files.values()) {
+        if (/\.(txt|md|csv|json)$/i.test(file.name)) {
+          readable.push(lineBreak + lineBreak + '--- ' + file.name + ' ---' + lineBreak + (await file.text()).slice(0, 8000));
+        }
+      }
+      return readable.join('').slice(0, 12000);
+    }
+
+    async function sendMessage(text) {
       const cleanText = text.trim();
-      if (!cleanText) return;
+      if (!cleanText || sendButton.disabled) return;
       welcome.hidden = true;
       addMessage(cleanText, 'user');
       promptField.value = '';
       promptField.style.height = 'auto';
-      window.setTimeout(() => addMessage(makeAssistantReply(cleanText), 'assistant'), 260);
+      sendButton.disabled = true;
+      addMessage('Starting Avion’s local AI…', 'assistant');
+      const reply = messages.querySelector('.message:last-child .message-content');
+      try {
+        const engine = await getEngine();
+        const attachmentText = await readTextAttachments();
+        const prompt = attachmentText
+          ? cleanText + lineBreak + lineBreak + 'Use the following attached text as context where relevant:' + attachmentText
+          : cleanText;
+        chatHistory.push({ role: 'user', content: prompt });
+        const stream = await engine.chat.completions.create({
+          messages: chatHistory,
+          temperature: 0.7,
+          max_tokens: 600,
+          stream: true
+        });
+        let answer = '';
+        for await (const chunk of stream) {
+          answer += chunk.choices?.[0]?.delta?.content || '';
+          reply.textContent = answer || 'Thinking…';
+          messages.scrollTop = messages.scrollHeight;
+        }
+        if (!answer.trim()) answer = 'I could not produce an answer. Please try asking another way.';
+        reply.textContent = answer;
+        chatHistory.push({ role: 'assistant', content: answer });
+        if (chatHistory.length > 17) chatHistory.splice(1, 2);
+      } catch (error) {
+        const message = error?.message || 'The local AI model could not start.';
+        reply.textContent = 'Avion couldn’t start its local AI: ' + message;
+        showToast(message.slice(0, 180));
+      } finally {
+        sendButton.disabled = false;
+        promptField.focus();
+      }
     }
 
     form.addEventListener('submit', event => {
@@ -417,7 +489,7 @@
       await addFiles(event.dataTransfer.files);
     });
 
-    document.querySelector('#modelInfo').addEventListener('click', () => showToast('No model provider is configured yet. Connect one to enable live AI responses.'));
+    document.querySelector('#modelInfo').addEventListener('click', async () => { try { await getEngine(); showToast('Avion’s local AI is ready. Ask a question to get started.'); } catch (error) { showToast(error?.message || 'The local AI model could not start.'); } });
   </script>
 </body>
 </html>
