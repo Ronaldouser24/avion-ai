@@ -353,7 +353,7 @@
       }
     }
 
-    const LOCAL_MODEL_ID = 'Llama-3.2-1B-Instruct-q4f32_1-MLC';
+    const LOCAL_MODEL_ID = 'Qwen2.5-0.5B-Instruct-q4f32_1-MLC';
     const chatHistory = [{
       role: 'system',
       content: 'You are Avion, a thoughtful, useful AI assistant. Answer clearly and directly, ask a brief follow-up when needed, and be honest about uncertainty. You run locally in the browser and do not have live web access. Never claim to have browsed or verified current facts.'
@@ -407,7 +407,7 @@
       promptField.value = '';
       promptField.style.height = 'auto';
       sendButton.disabled = true;
-      addMessage('Starting Avion’s local AI…', 'assistant');
+      addMessage('Loading Avion’s faster local AI model… first use downloads it to this browser; replies will appear as soon as it is ready.', 'assistant');
       const reply = messages.querySelector('.message:last-child .message-content');
       try {
         const engine = await getEngine();
